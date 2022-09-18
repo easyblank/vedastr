@@ -4,7 +4,7 @@ import os.path as osp
 import sys
 from argparse import ArgumentParser
 from importlib import import_module
-
+import io
 from addict import Dict
 
 from .misc import collections_abc
@@ -120,7 +120,7 @@ class Config(object):
         super(Config, self).__setattr__('_cfg_dict', ConfigDict(cfg_dict))
         super(Config, self).__setattr__('_filename', filename)
         if filename:
-            with open(filename, 'r') as f:
+            with io.open(filename, 'r',encoding="utf-8") as f:
                 super(Config, self).__setattr__('_text', f.read())
         else:
             super(Config, self).__setattr__('_text', '')

@@ -1,5 +1,5 @@
 import os
-
+import io
 from .base import BaseDataset
 from .registry import DATASETS
 
@@ -14,7 +14,7 @@ class TxtDataset(BaseDataset):
                                          unknown=unknown)
 
     def get_name_list(self):
-        with open(self.gt_txt, 'r') as gt:
+        with io.open(self.gt_txt, 'r', encoding="utf-8") as gt:
             for line in gt.readlines():
                 img_name, label = line.strip().split('\t')
                 if self.filter(label):

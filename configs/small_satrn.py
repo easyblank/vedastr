@@ -4,13 +4,11 @@
 size = (32, 100)
 mean, std = 0.5, 0.5
 
-sensitive = True
-character = '0123456789abcdefghijklmnopq' \
-            'rstuvwxyzABCDEFGHIJKLMNOPQRS' \
-            'TUVWXYZ!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~'  # need character
+sensitive = False
+character = '0123456789ㄱㄴㄷㄹㅁㅂㅅㅇㅈㅊㅋㅌㅍㅎㅃㅉㄸㄲㅆㅏㅑㅓㅕㅗㅛㅜㅠㅡㅣㅐㅔㅒㅖㅘㅙㅚㅝㅞㅟㅢ'  # need character
 test_sensitive = False
-test_character = '0123456789abcdefghijklmnopqrstuvwxyz'
-batch_max_length = 25
+test_character = '0123456789ㄱㄴㄷㄹㅁㅂㅅㅇㅈㅊㅋㅌㅍㅎㅃㅉㄸㄲㅆㅏㅑㅓㅕㅗㅛㅜㅠㅡㅣㅐㅔㅒㅖㅘㅙㅚㅝㅞㅟㅢ'
+batch_max_length = 40
 
 dropout = 0.1
 n_e = 9
@@ -202,29 +200,31 @@ test_dataset_params = dict(
     character=test_character,
 )
 
-data_root = '../../../../dataset/str/data/data_lmdb_release/'
+data_root = './data/data_lmdb_release/'
 
 ###############################################################################
 # 3. test
 
-batch_size = 256
-
+batch_size = 32
 # data
-test_root = data_root + 'evaluation/'
-test_folder_names = ['CUTE80', 'IC03_867', 'IC13_1015', 'IC15_2077',
-                     'IIIT5k_3000', 'SVT', 'SVTP']
-test_dataset = [dict(type='LmdbDataset', root=test_root + f_name,
-                     **test_dataset_params) for f_name in test_folder_names]
+train_root = data_root + 'training/'
+
+# dacon dataset
+train_root_dacon = train_root + 'train/'
+train_dataset_dacon = dict(type='LmdbDataset', root=train_root_dacon)
+
+val_root_dacon = train_root + 'val/'
+val_dataset_dacon = dict(type='LmdbDataset', root=val_root_dacon)
 
 test = dict(
     data=dict(
         dataloader=dict(
             type='DataLoader',
             batch_size=batch_size,
-            num_workers=4,
+            num_workers=0,
             shuffle=False,
         ),
-        dataset=test_dataset,
+        dataset=val_dataset_dacon,
         transform=[
             dict(type='Sensitive', sensitive=test_sensitive, need_character=test_character),
             dict(type='ToGray'),
@@ -246,31 +246,22 @@ root_workdir = 'workdir'  # save directory
 
 # data
 train_root = data_root + 'training/'
-# MJ dataset
-train_root_mj = train_root + 'MJ/'
-mj_folder_names = ['/MJ_test', 'MJ_valid', 'MJ_train']
-# ST dataset
-train_root_st = train_root + 'ST/'
 
-train_dataset_mj = [dict(type='LmdbDataset', root=train_root_mj + folder_name)
-                    for folder_name in mj_folder_names]
-train_dataset_st = [dict(type='LmdbDataset', root=train_root_st)]
+# dacon dataset
+train_root_dacon = train_root + 'train/'
+train_dataset_dacon = dict(type='LmdbDataset', root=train_root_dacon)
 
-# valid
-valid_root = data_root + 'validation/'
-valid_dataset = dict(type='LmdbDataset', root=valid_root, **test_dataset_params)
 
 train_transforms = [
     dict(type='Sensitive', sensitive=sensitive, need_character=character),
     dict(type='ToGray'),
-    dict(type='ExpandRotate', limit=34, p=0.5),
     dict(type='Resize', size=size),
     dict(type='Normalize', mean=mean, std=std),
     dict(type='ToTensor'),
 ]
 
-max_epochs = 6
-milestones = [2, 4]  # epoch start from 0, so 2 means lr decay at 3 epoch, 4 means lr decay at the end of
+max_epochs = 300
+milestones = [100, 200]  # epoch start from 0, so 2 means lr decay at 3 epoch, 4 means lr decay at the end of
 
 train = dict(
     data=dict(
@@ -278,39 +269,25 @@ train = dict(
             dataloader=dict(
                 type='DataLoader',
                 batch_size=batch_size,
-                num_workers=4,
+                num_workers=0,
             ),
-            sampler=dict(
-                type='BalanceSampler',
-                batch_size=batch_size,
-                shuffle=True,
-                oversample=True,
-            ),
-            dataset=dict(
-                type='ConcatDatasets',
-                datasets=[
-                    dict(
-                        type='ConcatDatasets',
-                        datasets=train_dataset_mj,
-                    ),
-                    dict(
-                        type='ConcatDatasets',
-                        datasets=train_dataset_st,
-                    )
-                ],
-                batch_ratio=[0.5, 0.5],
-                **dataset_params,
-            ),
+            # sampler=dict(
+            #     type='BalanceSampler',
+            #     batch_size=batch_size,
+            #     shuffle=True,
+            #     oversample=True,
+            # ),
+            dataset=train_dataset_dacon,
             transform=train_transforms,
         ),
         val=dict(
             dataloader=dict(
                 type='DataLoader',
                 batch_size=batch_size,
-                num_workers=4,
+                num_workers=0,
                 shuffle=False,
             ),
-            dataset=valid_dataset,
+            dataset=val_dataset_dacon,
             transform=test['data']['transform'],
         ),
     ),
