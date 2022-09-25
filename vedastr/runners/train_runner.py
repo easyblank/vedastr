@@ -10,7 +10,8 @@ from ..lr_schedulers import build_lr_scheduler
 from ..optimizers import build_optimizer
 from ..utils import save_checkpoint
 
-
+from torch.utils.tensorboard import SummaryWriter
+writer = SummaryWriter()
 class TrainRunner(InferenceRunner):
     def __init__(self, train_cfg, deploy_cfg, common_cfg=None):
         super(TrainRunner, self).__init__(deploy_cfg, common_cfg)
@@ -87,6 +88,8 @@ class TrainRunner(InferenceRunner):
         self.logger.info('Validate, acc %.4f, edit %s' %
                          (self.metric.avg['acc']['true'], self.metric.avg['edit']))
         self.logger.info(f'\n{self.metric.predict_example_log}')
+        writer.add_scalar('validate/acc', self.metric.avg['acc']['true'], self.iter + 1)
+        writer.add_scalar('validate/ED', self.metric.avg['edit'], self.iter + 1)
 
     def _train_batch(self, img, label):
         self.model.train()
@@ -119,7 +122,8 @@ class TrainRunner(InferenceRunner):
                 'Train, Epoch %d, Iter %d, LR %s, Loss %.4f, acc %.4f, edit_distance %s' %
                 (self.epoch, self.iter, self.lr, loss.item(), self.metric.avg['acc']['true'],
                  self.metric.avg['edit']))
-
+            writer.add_scalar('train/acc', self.metric.avg['acc']['true'], self.iter + 1)
+            writer.add_scalar('train/ED', self.metric.avg['edit'], self.iter + 1)
             self.logger.info(f'\n{self.metric.predict_example_log}')
 
     def _validate_batch(self, img, label):
