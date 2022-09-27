@@ -8,15 +8,17 @@ from .registry import DATASETS
 class TxtDataset(BaseDataset):
 
     def __init__(self, root, gt_txt, transform=None, character='abcdefghijklmnopqrstuvwxyz0123456789',
-                 batch_max_length=25, unknown=False):
+                 batch_max_length=25):
         super(TxtDataset, self).__init__(root, gt_txt, transform, character=character,
-                                         batch_max_length=batch_max_length,
-                                         unknown=unknown)
+                                         batch_max_length=batch_max_length)
 
     def get_name_list(self):
         with io.open(self.gt_txt, 'r', encoding="utf-8-sig") as gt:
             for line in gt.readlines():
-                img_name, label = line.strip().split('\t')
+                try:
+                    img_name, label = line.strip().split('\t')
+                except ValueError:
+                    continue
                 if self.filter(label):
                     continue
                 else:

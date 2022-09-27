@@ -25,7 +25,7 @@ class LmdbDataset(BaseDataset):
             for index in range(n_samples):
                 idx = index + 1  # lmdb starts with 1
                 label_key = 'label-%09d'.encode() % idx
-                label = txn.get(label_key).decode('utf-8')
+                label = txn.get(label_key).decode('utf-8-sig')
                 if self.filter(label):  # if length of label larger than max_len, drop this sample
                     continue
                 else:
@@ -38,7 +38,7 @@ class LmdbDataset(BaseDataset):
 
         with self.env.begin(write=False) as txn:
             label_key = 'label-%09d'.encode() % index
-            label = txn.get(label_key).decode('utf-8')
+            label = txn.get(label_key).decode('utf-8-sig')
             img_key = 'image-%09d'.encode() % index
             imgbuf = txn.get(img_key)
 
