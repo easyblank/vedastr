@@ -9,3 +9,4 @@ lmdb
 nltk
 terminaltables
 albumentations
+exrex

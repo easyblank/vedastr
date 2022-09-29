@@ -47,6 +47,8 @@ class LmdbDataset(BaseDataset):
             buf.seek(0)
             try:
                 img = Image.open(buf).convert('RGB')  # for color image
+                if img.size[0] * 4 < img.size[1]: 
+                    img.rotate(90)
                 img = np.array(img)
             except IOError:
                 print(f'Corrupted image for {index}')

@@ -200,12 +200,12 @@ test_dataset_params = dict(
     character=test_character,
 )
 
-data_root = '../data/'
+data_root = '/local_datasets/dacon_ocr/data/'
 
 ###############################################################################
 # 3. test
 
-batch_size = 32
+batch_size = 128
 # data
 
 train_dataset = dict(type='LmdbDataset', root=str(Path(data_root)/'Training'))
@@ -249,8 +249,8 @@ train_transforms = [
     dict(type='ToTensor'),
 ]
 
-max_epochs = 36
-milestones = [12, 24]  # epoch start from 0, so 2 means lr decay at 3 epoch, 4 means lr decay at the end of
+max_epochs = 18
+milestones = [6, 12]  # epoch start from 0, so 2 means lr decay at 3 epoch, 4 means lr decay at the end of
 
 train = dict(
     data=dict(
@@ -275,7 +275,7 @@ train = dict(
             transform=test['data']['transform'],
         ),
     ),
-    optimizer=dict(type='Adam', lr=1e-3),
+    optimizer=dict(type='Adam', lr=1e-4),
     criterion=dict(type='CrossEntropyLoss', ignore_index=num_class),
     lr_scheduler=dict(type='CosineLR',
                       iter_based=True,
@@ -283,8 +283,14 @@ train = dict(
                       ),
     max_epochs=max_epochs,
     log_interval=10,
-    trainval_ratio=24000,
-    snapshot_interval=24000,
+    trainval_ratio=8000,
+    snapshot_interval=8000,
     save_best=True,
-    resume=None,
+    resume=dict(
+    checkpoint='/data/clapd10/dacon_ocr/vedastr/workdir/small_satrn/best_acc.pth',
+    resume_optimizer=False,
+    resume_lr_scheduler=False,
+    resume_meta=False,
+    strict=False,
+),
 )
